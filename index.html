@@ -345,7 +345,52 @@
             }
         });
 
-        // Load gallery function
+  const DRIVE_API_URL = "https://script.google.com/macros/s/AKfycbx.../exec";
+  const DRIVE_API_TOKEN = "MYVIDEOANDPHOTO";
+  const DRIVE_FOLDER_ID = "1-5UycOeUgBwXbhgMfPjUq8H2838LD04g";
+
+  // Replace old loadGallery definition with updated fetch-based one (উপরের মতো)
+  function loadGallery() {
+    // show loading
+    const url = new URL(DRIVE_API_URL);
+    url.searchParams.append("token", DRIVE_API_TOKEN);
+    url.searchParams.append("folderId", DRIVE_FOLDER_ID);
+    fetch(url.toString())
+      .then(r => { if (!r.ok) throw new Error("HTTP error " + r.status); return r.json(); })
+      .then(data => {
+        if (data.status !== "success") throw new Error(data.message);
+        const files = data.items.map(item => {
+          let type = "other";
+          if (item.mimeType.startsWith("image/")) type = "image";
+          else if (item.mimeType.startsWith("video/")) type = "video";
+          const created = new Date(item.createdTime).toLocaleDateString('bn-BD', {
+            year: 'numeric', month: 'numeric', day: 'numeric'
+          });
+          let sizeText;
+          if (item.sizeBytes >= 1024*1024) sizeText = (item.sizeBytes/(1024*1024)).toFixed(1) + " MB";
+          else if (item.sizeBytes >= 1024) sizeText = (item.sizeBytes/1024).toFixed(1) + " KB";
+          else sizeText = item.sizeBytes + " B";
+          return {
+            id: item.id,
+            name: item.name,
+            type: type,
+            thumbnailUrl: item.viewUrl,
+            createdTime: created,
+            size: sizeText,
+            downloadUrl: item.downloadUrl,
+            viewUrl: item.viewUrl
+          };
+        });
+        displayFiles(files);
+        // Update stats etc, displayFiles/internal functions unchanged
+      })
+      .catch(err => {
+        console.error('Error loading files:', err);
+        handleError(err);
+      });
+  }
+
+       /* // Load gallery function
         function loadGallery() {
          
             // Simulate API call for demo - replace with actual Google Apps Script call
@@ -409,7 +454,7 @@
                     .withFailureHandler(handleError);
                 
             }, 2000);
-        }
+        }*/
 
         function displayFiles(files) {
             allFiles = files;
