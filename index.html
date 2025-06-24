@@ -346,15 +346,15 @@
         });
 
   const DRIVE_API_URL = "https://script.google.com/macros/s/AKfycbyrDBbWO9a0NTvcQWK2JsSQIlaq09T0892sA4_pJwhpbspcfaSMvYeBJr0ILyPLdcdCOg/exec";
-  //const DRIVE_API_TOKEN = "MYVIDEOANDPHOTO";
-  //const DRIVE_FOLDER_ID = "1-5UycOeUgBwXbhgMfPjUq8H2838LD04g";
+  const DRIVE_API_TOKEN = "MYVIDEOANDPHOTO";
+  const DRIVE_FOLDER_ID = "1-5UycOeUgBwXbhgMfPjUq8H2838LD04g";
 
   // Replace old loadGallery definition with updated fetch-based one (উপরের মতো)
   function loadGallery() {
     // show loading
     const url = new URL(DRIVE_API_URL);
-    //url.searchParams.append("token", DRIVE_API_TOKEN);
-    //url.searchParams.append("folderId", DRIVE_FOLDER_ID);
+    url.searchParams.append("token", DRIVE_API_TOKEN);
+    url.searchParams.append("folderId", DRIVE_FOLDER_ID);
     fetch(url.toString())
       .then(r => { if (!r.ok) throw new Error("HTTP error " + r.status); return r.json(); })
       .then(data => {
