@@ -143,6 +143,25 @@
             -o-user-drag: none;
             user-drag: none;
         }
+
+        /* Fix for GitHub Pages embedding */
+        .media-item img, .media-item video {
+            max-width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-dark text-gray-900 dark:text-white font-sans transition-all duration-300">
@@ -345,116 +364,93 @@
             }
         });
 
-  const DRIVE_API_URL = "https://script.google.com/macros/s/AKfycbyrDBbWO9a0NTvcQWK2JsSQIlaq09T0892sA4_pJwhpbspcfaSMvYeBJr0ILyPLdcdCOg/exec";
-  const DRIVE_API_TOKEN = "MYVIDEOANDPHOTO";
-  const DRIVE_FOLDER_ID = "1-5UycOeUgBwXbhgMfPjUq8H2838LD04g";
+        // Updated configuration for better GitHub Pages compatibility
+        const DRIVE_API_URL = "https://script.google.com/macros/s/AKfycbyrDBbWO9a0NTvcQWK2JsSQIlaq09T0892sA4_pJwhpbspcfaSMvYeBJr0ILyPLdcdCOg/exec";
+        const DRIVE_API_TOKEN = "MYVIDEOANDPHOTO";
+        const DRIVE_FOLDER_ID = "1-5UycOeUgBwXbhgMfPjUq8H2838LD04g";
 
-  // Replace old loadGallery definition with updated fetch-based one (উপরের মতো)
-  function loadGallery() {
-    // show loading
-    const url = new URL(DRIVE_API_URL);
-    url.searchParams.append("token", DRIVE_API_TOKEN);
-    url.searchParams.append("folderId", DRIVE_FOLDER_ID);
-    fetch(url.toString())
-      .then(r => { if (!r.ok) throw new Error("HTTP error " + r.status); return r.json(); })
-      .then(data => {
-        if (data.status !== "success") throw new Error(data.message);
-        const files = data.items.map(item => {
-          let type = "other";
-          if (item.mimeType.startsWith("image/")) type = "image";
-          else if (item.mimeType.startsWith("video/")) type = "video";
-          const created = new Date(item.createdTime).toLocaleDateString('bn-BD', {
-            year: 'numeric', month: 'numeric', day: 'numeric'
-          });
-          let sizeText;
-          if (item.sizeBytes >= 1024*1024) sizeText = (item.sizeBytes/(1024*1024)).toFixed(1) + " MB";
-          else if (item.sizeBytes >= 1024) sizeText = (item.sizeBytes/1024).toFixed(1) + " KB";
-          else sizeText = item.sizeBytes + " B";
-          return {
-            id: item.id,
-            name: item.name,
-            type: type,
-            thumbnailUrl: item.viewUrl,
-            createdTime: created,
-            size: sizeText,
-            downloadUrl: item.downloadUrl,
-            viewUrl: item.viewUrl
-          };
-        });
-        displayFiles(files);
-        // Update stats etc, displayFiles/internal functions unchanged
-      })
-      .catch(err => {
-        console.error('Error loading files:', err);
-        handleError(err);
-      });
-  }
-
-       /* // Load gallery function
+        // Enhanced load gallery function with better error handling and URL processing
         function loadGallery() {
-         
-            // Simulate API call for demo - replace with actual Google Apps Script call
-            setTimeout(() => {
-                const demoFiles = [
-                    {
-                        id: '1',
-                        name: 'Beautiful Sunset',
-                        type: 'image',
-                        thumbnailUrl: 'https://picsum.photos/400/400?random=1',
-                        createdTime: '২০২৪-০১-১৫',
-                        size: '২.৫ MB'
-                    },
-                    {
-                        id: '2',
-                        name: 'Ocean Waves',
-                        type: 'video',
-                        thumbnailUrl: 'https://picsum.photos/400/400?random=2',
-                        createdTime: '২০২৪-০১-১৪',
-                        size: '১৫.২ MB'
-                    },
-                    {
-                        id: '3',
-                        name: 'Mountain View',
-                        type: 'image',
-                        thumbnailUrl: 'https://picsum.photos/400/400?random=3',
-                        createdTime: '২০২৪-০১-১৩',
-                        size: '৩.১ MB'
-                    },
-                    {
-                        id: '4',
-                        name: 'City Lights',
-                        type: 'image',
-                        thumbnailUrl: 'https://picsum.photos/400/400?random=4',
-                        createdTime: '২০২৪-০১-১২',
-                        size: '৪.৭ MB'
-                    },
-                    {
-                        id: '5',
-                        name: 'Nature Walk',
-                        type: 'video',
-                        thumbnailUrl: 'https://picsum.photos/400/400?random=5',
-                        createdTime: '২০২৪-০১-১১',
-                        size: '২২.৮ MB'
-                    },
-                    {
-                        id: '6',
-                        name: 'Peaceful Garden',
-                        type: 'image',
-                        thumbnailUrl: 'https://picsum.photos/400/400?random=6',
-                        createdTime: '২০২৪-০১-১০',
-                        size: '২.৯ MB'
+            const url = new URL(DRIVE_API_URL);
+            url.searchParams.append("token", DRIVE_API_TOKEN);
+            url.searchParams.append("folderId", DRIVE_FOLDER_ID);
+            
+            fetch(url.toString(), {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status !== "success") {
+                    throw new Error(data.message || "Failed to load gallery");
+                }
+                
+                const files = data.items.map(item => {
+                    let type = "other";
+                    if (item.mimeType.startsWith("image/")) type = "image";
+                    else if (item.mimeType.startsWith("video/")) type = "video";
+                    
+                    // Format creation date
+                    const created = new Date(item.createdTime).toLocaleDateString('bn-BD', {
+                        year: 'numeric', 
+                        month: 'numeric', 
+                        day: 'numeric'
+                    });
+                    
+                    // Format file size
+                    let sizeText;
+                    const sizeBytes = parseInt(item.sizeBytes) || 0;
+                    if (sizeBytes >= 1024*1024) {
+                        sizeText = (sizeBytes/(1024*1024)).toFixed(1) + " MB";
+                    } else if (sizeBytes >= 1024) {
+                        sizeText = (sizeBytes/1024).toFixed(1) + " KB";
+                    } else {
+                        sizeText = sizeBytes + " B";
                     }
-                ];
+                    
+                    // Process URLs for better GitHub Pages compatibility
+                    let displayUrl = item.viewUrl;
+                    let thumbnailUrl = item.thumbnailUrl;
+                    
+                    // For images, use the direct view URL
+                    if (type === 'image') {
+                        displayUrl = item.viewUrl;
+                        thumbnailUrl = item.thumbnailUrl || item.viewUrl;
+                    }
+                    // For videos, use preview URL
+                    else if (type === 'video') {
+                        displayUrl = item.viewUrl;
+                        thumbnailUrl = item.thumbnailUrl || `https://drive.google.com/thumbnail?id=${item.id}&sz=w400-h400-c`;
+                    }
+                    
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        type: type,
+                        thumbnailUrl: thumbnailUrl,
+                        displayUrl: displayUrl,
+                        downloadUrl: item.downloadUrl,
+                        createdTime: created,
+                        size: sizeText,
+                        mimeType: item.mimeType
+                    };
+                });
                 
-                displayFiles(demoFiles);
-                
-                //Uncomment this when connecting to Google Apps Script:
-                google.script.run
-                    .withSuccessHandler(displayFiles)
-                    .withFailureHandler(handleError);
-                
-            }, 2000);
-        }*/
+                displayFiles(files);
+            })
+            .catch(err => {
+                console.error('Error loading files:', err);
+                handleError(err);
+            });
+        }
 
         function displayFiles(files) {
             allFiles = files;
@@ -503,22 +499,44 @@
             card.className = 'media-card bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl cursor-pointer no-select';
             card.dataset.type = file.type;
             
+            // Create media content based on type
+            let mediaContent = '';
+            if (file.type === 'image') {
+                mediaContent = `
+                    <img src="${file.thumbnailUrl}" 
+                         alt="${file.name}" 
+                         class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" 
+                         loading="lazy"
+                         crossorigin="anonymous"
+                         referrerpolicy="no-referrer">`;
+            } else if (file.type === 'video') {
+                mediaContent = `
+                    <div class="relative w-full h-full bg-gray-900">
+                        <img src="${file.thumbnailUrl}" 
+                             alt="${file.name}" 
+                             class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" 
+                             loading="lazy"
+                             crossorigin="anonymous"
+                             referrerpolicy="no-referrer">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                                <i class="fas fa-play text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                mediaContent = `
+                    <div class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                        <i class="fas fa-file text-4xl text-gray-400"></i>
+                    </div>`;
+            }
+            
             card.innerHTML = `
                 <div class="relative aspect-square overflow-hidden">
-                    ${file.type === 'image' ? 
-                        `<img src="${file.thumbnailUrl}" alt="${file.name}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" loading="lazy">` :
-                        `<div class="relative w-full h-full bg-gray-900">
-                            <img src="${file.thumbnailUrl}" alt="${file.name}" class="w-full h-full object-cover transition-transform duration-500 hover:scale-110" loading="lazy">
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="w-16 h-16 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                                    <i class="fas fa-play text-white text-xl"></i>
-                                </div>
-                            </div>
-                        </div>`
-                    }
+                    ${mediaContent}
                     <div class="absolute top-3 right-3">
                         <span class="px-2 py-1 bg-black bg-opacity-50 text-white text-xs rounded-full">
-                            ${file.type === 'image' ? '📷' : '🎥'}
+                            ${file.type === 'image' ? '📷' : file.type === 'video' ? '🎥' : '📄'}
                         </span>
                     </div>
                 </div>
@@ -579,11 +597,39 @@
             const lightbox = document.getElementById('lightbox');
             const content = document.getElementById('lightboxContent');
             
-            content.innerHTML = file.type === 'image' ?
-                `<img src="${file.thumbnailUrl}" alt="${file.name}" class="max-w-full max-h-full object-contain no-select">` :
-                `<video src="${file.thumbnailUrl}" controls class="max-w-full max-h-full no-select" autoplay>
-                    Your browser does not support the video tag.
-                </video>`;
+            let lightboxContent = '';
+            
+            if (file.type === 'image') {
+                lightboxContent = `
+                    <img src="${file.displayUrl}" 
+                         alt="${file.name}" 
+                         class="max-w-full max-h-full object-contain no-select"
+                         crossorigin="anonymous"
+                         referrerpolicy="no-referrer">`;
+            } else if (file.type === 'video') {
+                // For videos, use iframe for better compatibility
+                lightboxContent = `
+                    <div class="video-container max-w-full max-h-full">
+                        <iframe src="${file.displayUrl}" 
+                                class="w-full h-full"
+                                allowfullscreen>
+                        </iframe>
+                    </div>`;
+            } else {
+                lightboxContent = `
+                    <div class="text-white text-center">
+                        <i class="fas fa-file text-6xl mb-4"></i>
+                        <h3 class="text-xl mb-2">${file.name}</h3>
+                        <p class="mb-4">This file type cannot be previewed</p>
+                        <a href="${file.downloadUrl}" 
+                           class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors"
+                           target="_blank">
+                            Download File
+                        </a>
+                    </div>`;
+            }
+            
+            content.innerHTML = lightboxContent;
             
             lightbox.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
@@ -624,7 +670,15 @@
             } else {
                 // Fallback
                 navigator.clipboard.writeText(window.location.href).then(() => {
-                    alert('Gallery link copied to clipboard!');
+                    // Create a temporary notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+                    notification.textContent = 'Gallery link copied to clipboard!';
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 3000);
                 });
             }
         }
@@ -638,6 +692,7 @@
                     </div>
                     <h3 class="text-2xl font-bold mb-2">Oops! Something went wrong</h3>
                     <p class="text-gray-600 dark:text-gray-300 mb-6">We couldn't load the gallery content. Please try again later.</p>
+                    <p class="text-sm text-gray-500 mb-6">Error: ${error.message}</p>
                     <button onclick="loadGallery()" class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors">
                         Try Again
                     </button>
