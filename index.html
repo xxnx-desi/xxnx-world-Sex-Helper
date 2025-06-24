@@ -347,9 +347,7 @@
 
         // Load gallery function
         function loadGallery() {
-            // Replace 'YOUR_FOLDER_ID_HERE' with your actual Google Drive folder ID
-            const folderId = 'YOUR_FOLDER_ID_HERE';
-            
+         
             // Simulate API call for demo - replace with actual Google Apps Script call
             setTimeout(() => {
                 const demoFiles = [
@@ -405,12 +403,11 @@
                 
                 displayFiles(demoFiles);
                 
-                /* Uncomment this when connecting to Google Apps Script:
+                //Uncomment this when connecting to Google Apps Script:
                 google.script.run
                     .withSuccessHandler(displayFiles)
-                    .withFailureHandler(handleError)
-                    .listDriveFiles(folderId);
-                */
+                    .withFailureHandler(handleError);
+                
             }, 2000);
         }
 
